@@ -1,0 +1,38 @@
+# Normalize text files in the repository.
+* text=auto eol=lf
+
+# Source and project metadata.
+*.py text eol=lf
+*.toml text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.def text eol=lf
+*.tasm text eol=lf linguist-language=Talaria-TASM
+
+# Vendored Hermes bytecode specifications. These are intentionally checked in,
+# but they should not make GitHub classify Talaria as a C++ project.
+src/talaria/hbc/hbc*/raw/** linguist-vendored
+src/talaria/hbc/hbc*/raw/*.h linguist-language=C linguist-vendored
+src/talaria/hbc/hbc*/raw/*.def linguist-language=C linguist-vendored
+
+# Generated version-specific parser/opcode assets.
+src/talaria/hbc/hbc*/parser.py linguist-generated
+src/talaria/hbc/hbc*/data/*.json linguist-generated
+src/talaria/hbc/hbc*/tool/opcode_generator.py linguist-generated
+
+# Test fixtures and reference dumps.
+src/talaria/hbc/hbc*/example/*.out linguist-vendored
+src/talaria/hbc/hbc*/example/*.bundle binary linguist-vendored
+
+# Images and package-like artifacts.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.apk binary
+*.bundle binary
+*.idsig binary

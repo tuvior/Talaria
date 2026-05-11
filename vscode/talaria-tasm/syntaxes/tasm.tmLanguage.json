@@ -1,0 +1,209 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Talaria TASM",
+  "scopeName": "source.tasm",
+  "patterns": [
+    {
+      "include": "#function-directive"
+    },
+    {
+      "include": "#end-function-directive"
+    },
+    {
+      "include": "#metadata-directive"
+    },
+    {
+      "include": "#label-definition"
+    },
+    {
+      "include": "#instruction"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#comments"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.number-sign.tasm",
+          "begin": "#",
+          "end": "$"
+        },
+        {
+          "name": "comment.line.semicolon.tasm",
+          "match": "^\\s*;.*$"
+        }
+      ]
+    },
+    "constants": {
+      "patterns": [
+        {
+          "name": "constant.language.nan.tasm",
+          "match": "(?<![A-Za-z0-9_.$@:-])-nan\\b"
+        },
+        {
+          "name": "constant.numeric.float.tasm",
+          "match": "(?<![A-Za-z0-9_.$@:-])-?(?:\\d+\\.\\d*|\\.\\d+)(?:[eE][+-]?\\d+)?\\b"
+        },
+        {
+          "name": "constant.numeric.integer.tasm",
+          "match": "(?<![A-Za-z0-9_.$@:-])-?\\d+\\b"
+        }
+      ]
+    },
+    "end-function-directive": {
+      "name": "meta.directive.end-function.tasm",
+      "begin": "^\\s*(\\.end)\\s+(function)\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.control.directive.tasm"
+        },
+        "2": {
+          "name": "entity.name.section.tasm"
+        }
+      },
+      "end": "$",
+      "patterns": [
+        {
+          "include": "#comments"
+        }
+      ]
+    },
+    "function-directive": {
+      "name": "meta.directive.function.tasm",
+      "begin": "^\\s*(\\.function)\\s+(@)(\\d+)\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.control.directive.tasm"
+        },
+        "2": {
+          "name": "punctuation.definition.function-id.tasm"
+        },
+        "3": {
+          "name": "constant.numeric.function-id.tasm"
+        }
+      },
+      "end": "$",
+      "patterns": [
+        {
+          "include": "#comments"
+        }
+      ]
+    },
+    "instruction": {
+      "name": "meta.instruction.tasm",
+      "begin": "^\\s*([A-Z][A-Za-z0-9_]*)\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.other.opcode.tasm"
+        }
+      },
+      "end": "$",
+      "patterns": [
+        {
+          "include": "#strings"
+        },
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#operands"
+        },
+        {
+          "name": "punctuation.separator.operand.tasm",
+          "match": ","
+        }
+      ]
+    },
+    "label-definition": {
+      "name": "meta.label.definition.tasm",
+      "match": "^\\s*(:[A-Za-z_.$][A-Za-z0-9_.$-]*)(?=\\s*(?:#.*)?$)",
+      "captures": {
+        "1": {
+          "name": "entity.name.label.tasm"
+        }
+      }
+    },
+    "metadata-directive": {
+      "name": "meta.directive.metadata.tasm",
+      "begin": "^\\s*(\\.(?:name|params|registers|symbols))\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.control.directive.tasm"
+        }
+      },
+      "end": "$",
+      "patterns": [
+        {
+          "include": "#strings"
+        },
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#constants"
+        }
+      ]
+    },
+    "operands": {
+      "patterns": [
+        {
+          "name": "variable.parameter.register.tasm",
+          "match": "\\br\\d+\\b"
+        },
+        {
+          "name": "variable.other.reference.string.tasm",
+          "match": "\\b(?:s|str8|str16|str32)@\\d+\\b"
+        },
+        {
+          "name": "variable.other.reference.function.tasm",
+          "match": "\\bfn@\\d+\\b"
+        },
+        {
+          "name": "variable.other.reference.bigint.tasm",
+          "match": "\\bbigint@\\d+\\b"
+        },
+        {
+          "name": "entity.name.label.reference.tasm",
+          "match": ":[A-Za-z_.$][A-Za-z0-9_.$-]*"
+        },
+        {
+          "name": "storage.type.operand.tasm",
+          "match": "\\b(?:r32|u8|u16|u32|i32|imm32|addr8|addr32|f64):"
+        },
+        {
+          "name": "support.type.alias.tasm",
+          "match": "\\b(?:argc|param|slot|cache|env):"
+        },
+        {
+          "include": "#constants"
+        }
+      ]
+    },
+    "strings": {
+      "name": "string.quoted.double.tasm",
+      "begin": "\"",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.begin.tasm"
+        }
+      },
+      "end": "\"",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.tasm"
+        }
+      },
+      "patterns": [
+        {
+          "name": "constant.character.escape.tasm",
+          "match": "\\\\(?:[\"\\\\/bfnrt]|u[0-9A-Fa-f]{4})"
+        }
+      ]
+    }
+  }
+}

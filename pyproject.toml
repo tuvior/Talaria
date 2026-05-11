@@ -1,0 +1,77 @@
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "talaria"
+version = "0.1.0"
+description = "Hermes bytecode disassembler and assembler for React Native bundles"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [
+  { name = "tuvior" },
+]
+keywords = ["hermes", "bytecode", "react-native", "reverse-engineering"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development :: Disassemblers",
+]
+dependencies = [
+  "click>=8.3",
+  "rich>=15",
+]
+
+[project.urls]
+Homepage = "https://github.com/tuvior/talaria"
+Repository = "https://github.com/tuvior/talaria"
+Issues = "https://github.com/tuvior/talaria/issues"
+
+[project.scripts]
+talaria = "talaria.cli:main"
+
+[project.optional-dependencies]
+dev = [
+  "black>=26",
+  "pytest>=9",
+  "ruff>=0.15",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/talaria"]
+artifacts = [
+  "src/talaria/**/*.json",
+  "src/talaria/**/raw/*",
+  "src/talaria/**/example/*",
+]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/README.md",
+  "/LICENSE",
+  "/pyproject.toml",
+  "/src",
+  "/tests",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["src/talaria/hbc/hbc*/**"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
