@@ -195,12 +195,12 @@ def write_func(out: TextIO, function: FunctionBody, index: int, context: TasmCon
     for offset, instruction in zip(offsets, function.instructions, strict=True):
         label = labels.get(offset)
         if label is not None:
+            if previous_opcode is not None:
+                out.write("\n")
             out.write(f"{label}\n")
-
-        starts_new_group = previous_opcode is not None and _starts_new_instruction_group(
+        elif previous_opcode is not None and _starts_new_instruction_group(
             previous_opcode, instruction.opcode
-        )
-        if starts_new_group:
+        ):
             out.write("\n")
         previous_opcode = instruction.opcode
 
@@ -237,9 +237,27 @@ def _function_offsets_and_labels(
 
 
 def _starts_new_instruction_group(previous_opcode: str, opcode: str) -> bool:
-    if previous_opcode.startswith(("Ret", "Throw", "Jmp")):
+    previous_is_declaration = previous_opcode.startswith("Declare")
+    opcode_is_declaration = opcode.startswith("Declare")
+    if previous_is_declaration:
+        return not opcode_is_declaration
+    if opcode_is_declaration:
         return True
-    return opcode.startswith(("Declare", "Create", "Call", "Ret", "Throw", "Jmp"))
+    if _is_unconditional_terminator(previous_opcode):
+        return True
+    return _is_call(previous_opcode) and _starts_fresh_setup(opcode)
+
+
+def _is_unconditional_terminator(opcode: str) -> bool:
+    return opcode in {"Jmp", "JmpLong"} or opcode.startswith(("Ret", "Throw"))
+
+
+def _is_call(opcode: str) -> bool:
+    return opcode.startswith("Call") or opcode.startswith("Construct")
+
+
+def _starts_fresh_setup(opcode: str) -> bool:
+    return opcode.startswith(("CreateClosure", "GetGlobalObject", "TryGetById"))
 
 
 def _format_operand(

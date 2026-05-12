@@ -130,6 +130,70 @@ def test_invalid_string_reference_does_not_crash():
     assert "DeclareGlobalVar s@999999" in out.getvalue()
 
 
+def test_tasm_groups_related_instructions_without_extra_gaps():
+    class FakeHBC:
+        def getHeader(self):
+            return {"version": 98}
+
+        def getStringCount(self):
+            return 2
+
+        def getString(self, index):
+            return (["first", "second"][index], (False, 0, 0))
+
+    out = io.StringIO()
+    context = tasm.TasmContext.from_hbc(FakeHBC())
+    func = FunctionBody(
+        name="",
+        param_count=0,
+        register_count=5,
+        symbol_count=0,
+        instructions=(
+            Instruction("DeclareGlobalVar", (Operand("UInt32", True, 0),)),
+            Instruction("DeclareGlobalVar", (Operand("UInt32", True, 1),)),
+            Instruction(
+                "CreateClosure",
+                (
+                    Operand("Reg8", False, 1),
+                    Operand("Reg8", False, 2),
+                    Operand("UInt16", False, 3),
+                ),
+            ),
+            Instruction(
+                "LoadConstUInt8",
+                (
+                    Operand("Reg8", False, 4),
+                    Operand("UInt8", False, 1),
+                ),
+            ),
+            Instruction(
+                "Call2",
+                (
+                    Operand("Reg8", False, 0),
+                    Operand("Reg8", False, 1),
+                    Operand("Reg8", False, 2),
+                    Operand("Reg8", False, 4),
+                ),
+            ),
+            Instruction("Jmp", (Operand("Addr8", False, 2),)),
+            Instruction("Ret", (Operand("Reg8", False, 0),)),
+        ),
+    )
+
+    tasm.write_func(out, func, 0, context)
+
+    assert (
+        '    DeclareGlobalVar s@0 "first"\n'
+        '    DeclareGlobalVar s@1 "second"\n\n'
+        "    CreateClosure r1, r2, fn@3\n"
+        "    LoadConstUInt8 r4, 1\n"
+        "    Call2 r0, r1, r2, r4\n"
+        "    Jmp :L0019\n\n"
+        ":L0019\n"
+        "    Ret r0\n"
+    ) in out.getvalue()
+
+
 def test_tasm_missing_function_block_preserves_original_function(tmp_path):
     with HBC98_FIXTURE.open("rb") as f:
         original = hbcl.load(f)
