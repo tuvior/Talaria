@@ -1,11 +1,96 @@
 {
+  "59": {
+    "source": "facebook/hermes",
+    "tag": "v0.1.0",
+    "bytecode_version": 59,
+    "verified_compatible_tags": []
+  },
+  "62": {
+    "source": "facebook/hermes",
+    "tag": "v0.2.1",
+    "bytecode_version": 62,
+    "verified_compatible_tags": []
+  },
+  "74": {
+    "source": "facebook/hermes",
+    "tag": "v0.5.0",
+    "bytecode_version": 74,
+    "verified_compatible_tags": [
+      "v0.4.0",
+      "v0.4.1",
+      "v0.4.3",
+      "v0.4.4",
+      "v0.5.1",
+      "v0.5.3",
+      "v0.6.0"
+    ],
+    "fixture_source": "existing sample bundle"
+  },
+  "76": {
+    "source": "facebook/hermes",
+    "tag": "v0.7.0",
+    "bytecode_version": 76,
+    "verified_compatible_tags": [
+      "v0.7.1",
+      "v0.7.2"
+    ],
+    "fixture_source": "existing sample bundle"
+  },
   "84": {
     "source": "facebook/hermes",
-    "tag": "v0.9.0",
+    "tag": "v0.8.1",
     "bytecode_version": 84,
     "verified_compatible_tags": [
-      "v0.8.1"
-    ]
+      "v0.9.0",
+      "v0.10.0",
+      "v0.11.0"
+    ],
+    "fixture_source": "hermes-engine@0.8.1"
+  },
+  "85": {
+    "source": "facebook/hermes",
+    "tag": "hermes-2022-05-20-RNv0.69.0-ee8941b8874132b8f83e4486b63ed5c19fc3f111",
+    "bytecode_version": 85,
+    "verified_compatible_tags": [
+      "hermes-2022-04-28-RNv0.69.0-15d07c2edd29a4ea0b8f15ab0588a0c1adb1200f"
+    ],
+    "fixture_source": "react-native@0.69.12"
+  },
+  "90": {
+    "source": "facebook/hermes",
+    "tag": "hermes-2024-04-26-RNv0.71.19-b34632e6c603fb375ac4c8f423b2ee9cc45bed97",
+    "bytecode_version": 90,
+    "verified_compatible_tags": [
+      "hermes-2022-11-03-RNv0.71.0-85613e1f9d1216f2cce7e54604be46057092939d",
+      "hermes-2022-11-30-RNv0.71.0-1eb8f7ea3059a338205c302cea0f5a3057f93049",
+      "hermes-2023-03-07-RNv0.71.4-31fdcf738940875c9bacf251e149006cf515d763",
+      "hermes-2023-03-07-RNv0.71.4-ee25883ea34374f687883a641c8101ac0d292fc6"
+    ],
+    "fixture_source": "react-native@0.71.19"
+  },
+  "94": {
+    "source": "facebook/hermes",
+    "tag": "hermes-2024-04-29-RNv0.72.14-3815fec63d1a6667ca3195160d6e12fee6a0d8d5",
+    "bytecode_version": 94,
+    "verified_compatible_tags": [
+      "hermes-2023-03-20-RNv0.72.0-49794cfc7c81fb8f69fd60c3bbf85a7480cc5a77",
+      "hermes-2023-08-07-RNv0.72.4-813b2def12bc9df02654b3e3653ae4a68d0572e0",
+      "hermes-2024-08-19-RNv0.72.17-8db50ff842863990bff1f2ec6e982ccbffbc0e14"
+    ],
+    "fixture_source": "react-native@0.72.17"
+  },
+  "96": {
+    "source": "facebook/hermes",
+    "tag": "hermes-2024-04-29-RNv0.73.8-644c8be78af1eae7c138fa4093fb87f0f4f8db85",
+    "bytecode_version": 96,
+    "verified_compatible_tags": [
+      "v0.13.0",
+      "hermes-v0.14.0",
+      "hermes-v0.15.0",
+      "hermes-v0.16.0",
+      "hermes-v0.17.0"
+    ],
+    "fixture_source": "react-native@0.73.11"
   },
   "98": {
     "source": "facebook/hermes",
@@ -13,6 +98,7 @@
     "bytecode_version": 98,
     "verified_compatible_tags": [
       "hermes-v250829098.0.13"
-    ]
+    ],
+    "fixture_source": "existing sample bundle"
   }
 }

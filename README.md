@@ -36,20 +36,24 @@ bytecode file format and opcode list. General background is available in the
 
 | HBC version | Opcodes | Talaria metadata | Upstream reference | Test fixture |
 | --- | ---: | --- | --- | --- |
-| 59 | 177 | [`hbc59`](src/talaria/hbc/hbc59) | No stable public source tag recorded yet | Yes |
-| 62 | 177 | [`hbc62`](src/talaria/hbc/hbc62) | No stable public source tag recorded yet | Yes |
-| 74 | 180 | [`hbc74`](src/talaria/hbc/hbc74) | No stable public source tag recorded yet | Yes |
-| 76 | 180 | [`hbc76`](src/talaria/hbc/hbc76) | No stable public source tag recorded yet | Yes |
-| 84 | 199 | [`hbc84`](src/talaria/hbc/hbc84) | [`facebook/hermes@v0.9.0`](https://github.com/facebook/hermes/tree/v0.9.0/include/hermes/BCGen/HBC) | No |
-| 85 | 201 | [`hbc85`](src/talaria/hbc/hbc85) | No stable public source tag recorded yet | No |
-| 90 | 204 | [`hbc90`](src/talaria/hbc/hbc90) | No stable public source tag recorded yet | No |
-| 94 | 206 | [`hbc94`](src/talaria/hbc/hbc94) | No stable public source tag recorded yet | No |
-| 96 | 206 | [`hbc96`](src/talaria/hbc/hbc96) | No stable public source tag recorded yet | No |
-| 98 | 219 | [`hbc98`](src/talaria/hbc/hbc98) | [`facebook/hermes@hermes-v250829098.0.10`](https://github.com/facebook/hermes/tree/hermes-v250829098.0.10/include/hermes/BCGen/HBC) | Yes |
+| 59 | 177 | [`hbc59`](src/talaria/hbc/hbc59) | [`facebook/hermes@v0.1.0`](https://github.com/facebook/hermes/tree/v0.1.0/include/hermes/BCGen/HBC) | [`bundle`](src/talaria/hbc/hbc59/example/index.android.bundle) |
+| 62 | 177 | [`hbc62`](src/talaria/hbc/hbc62) | [`facebook/hermes@v0.2.1`](https://github.com/facebook/hermes/tree/v0.2.1/include/hermes/BCGen/HBC) | [`bundle`](src/talaria/hbc/hbc62/example/index.android.bundle) |
+| 74 | 180 | [`hbc74`](src/talaria/hbc/hbc74) | [`facebook/hermes@v0.5.0`](https://github.com/facebook/hermes/tree/v0.5.0/include/hermes/BCGen/HBC) | [`bundle`](src/talaria/hbc/hbc74/example/index.android.bundle) |
+| 76 | 180 | [`hbc76`](src/talaria/hbc/hbc76) | [`facebook/hermes@v0.7.0`](https://github.com/facebook/hermes/tree/v0.7.0/include/hermes/BCGen/HBC) | [`bundle`](src/talaria/hbc/hbc76/example/index.android.bundle) |
+| 84 | 199 | [`hbc84`](src/talaria/hbc/hbc84) | [`facebook/hermes@v0.8.1`](https://github.com/facebook/hermes/tree/v0.8.1/include/hermes/BCGen/HBC) | [`bundle`](src/talaria/hbc/hbc84/example/index.android.bundle) |
+| 85 | 201 | [`hbc85`](src/talaria/hbc/hbc85) | [`facebook/hermes@RN 0.69`](https://github.com/facebook/hermes/tree/hermes-2022-05-20-RNv0.69.0-ee8941b8874132b8f83e4486b63ed5c19fc3f111/include/hermes/BCGen/HBC) | [`bundle`](src/talaria/hbc/hbc85/example/index.android.bundle) |
+| 90 | 204 | [`hbc90`](src/talaria/hbc/hbc90) | [`facebook/hermes@RN 0.71`](https://github.com/facebook/hermes/tree/hermes-2024-04-26-RNv0.71.19-b34632e6c603fb375ac4c8f423b2ee9cc45bed97/include/hermes/BCGen/HBC) | [`bundle`](src/talaria/hbc/hbc90/example/index.android.bundle) |
+| 94 | 206 | [`hbc94`](src/talaria/hbc/hbc94) | [`facebook/hermes@RN 0.72`](https://github.com/facebook/hermes/tree/hermes-2024-04-29-RNv0.72.14-3815fec63d1a6667ca3195160d6e12fee6a0d8d5/include/hermes/BCGen/HBC) | [`bundle`](src/talaria/hbc/hbc94/example/index.android.bundle) |
+| 96 | 206 | [`hbc96`](src/talaria/hbc/hbc96) | [`facebook/hermes@RN 0.73`](https://github.com/facebook/hermes/tree/hermes-2024-04-29-RNv0.73.8-644c8be78af1eae7c138fa4093fb87f0f4f8db85/include/hermes/BCGen/HBC) | [`bundle`](src/talaria/hbc/hbc96/example/index.android.bundle) |
+| 98 | 219 | [`hbc98`](src/talaria/hbc/hbc98) | [`facebook/hermes@hermes-v250829098.0.10`](https://github.com/facebook/hermes/tree/hermes-v250829098.0.10/include/hermes/BCGen/HBC) | [`bundle`](src/talaria/hbc/hbc98/example/index.android.bundle) |
 
 Unsupported bundle versions fail explicitly before parsing. The source tag
-registry lives in [`specs.json`](src/talaria/hbc/specs.json); add a tag there
-when a supported HBC version is traced to an upstream Hermes release.
+registry lives in [`specs.json`](src/talaria/hbc/specs.json), including the
+compiler package used for generated fixtures. Fixtures for HBC 84, 85, 90, 94,
+and 96 are compiled from [`hbc_fixture.js`](tests/fixtures/hbc_fixture.js). HBC
+59 and 62 are retained sample bundles because the matching npm packages do not
+ship a usable Linux `hermesc` binary; HBC 74, 76, and 98 are retained sample
+bundles that are verified against their source-era metadata.
 
 ## Install
 

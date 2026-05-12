@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import json
 import pathlib
 import re
 
@@ -13,12 +14,61 @@ from talaria.hbc.hbc96.translator import assemble, disassemble, opcode_mapper_in
 from talaria.models import FunctionBody, Instruction, Operand
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-HBC98_FIXTURE = ROOT / "src" / "talaria" / "hbc" / "hbc98" / "example" / "index.android.bundle"
+HBC_ROOT = ROOT / "src" / "talaria" / "hbc"
+HBC98_FIXTURE = HBC_ROOT / "hbc98" / "example" / "index.android.bundle"
+HBC_FIXTURES = {
+    version: HBC_ROOT / f"hbc{version}" / "example" / "index.android.bundle"
+    for version in SUPPORTED_VERSIONS
+}
 
 
 def test_supported_versions_match_ported_modules():
     assert SUPPORTED_VERSIONS == (59, 62, 74, 76, 84, 85, 90, 94, 96, 98)
     assert sorted(hbcl.HBC) == list(SUPPORTED_VERSIONS)
+
+
+def test_supported_versions_have_specs_and_fixtures():
+    specs = json.loads((HBC_ROOT / "specs.json").read_text())
+
+    assert sorted(int(version) for version in specs) == list(SUPPORTED_VERSIONS)
+    for version, fixture in HBC_FIXTURES.items():
+        assert fixture.exists(), f"hbc{version} is missing an index.android.bundle fixture"
+        assert specs[str(version)]["bytecode_version"] == version
+        assert specs[str(version)]["tag"]
+
+
+@pytest.mark.parametrize("version,fixture", HBC_FIXTURES.items())
+def test_hbc_fixture_direct_dump_round_trips_bytes(version, fixture, tmp_path):
+    original_bytes = fixture.read_bytes()
+    with fixture.open("rb") as f:
+        hbco = hbcl.load(f)
+
+    assert hbco.getHeader()["version"] == version
+
+    out_path = tmp_path / "index.android.bundle"
+    with out_path.open("w+b") as f:
+        hbcl.dump(hbco, f)
+
+    assert out_path.read_bytes() == original_bytes
+
+
+@pytest.mark.parametrize("version,fixture", HBC_FIXTURES.items())
+def test_hbc_fixture_tasm_round_trips_bytes(version, fixture, tmp_path):
+    original_bytes = fixture.read_bytes()
+    with fixture.open("rb") as f:
+        hbco = hbcl.load(f)
+
+    assert hbco.getHeader()["version"] == version
+
+    tasm_path = tmp_path / "tasm"
+    tasm.dump(hbco, tasm_path, force=True)
+    loaded = tasm.load(tasm_path)
+
+    out_path = tmp_path / "index.android.bundle"
+    with out_path.open("w+b") as f:
+        hbcl.dump(loaded, f)
+
+    assert out_path.read_bytes() == original_bytes
 
 
 def test_imm32_is_signed():
@@ -90,28 +140,32 @@ def test_tasm_allows_single_string_edit_for_repeated_string_id(tmp_path):
     with HBC98_FIXTURE.open("rb") as f:
         original = hbcl.load(f)
 
+    alpha_id = string_id(original, "alpha")
     tasm.dump(original, tmp_path, force=True)
     instruction_path = tmp_path / "functions.tasm"
     content = instruction_path.read_text()
-    instruction_path.write_text(content.replace('s@8 "alpha"', 's@8 "omega"', 1))
+    instruction_path.write_text(
+        content.replace(f's@{alpha_id} "alpha"', f's@{alpha_id} "omega"', 1)
+    )
 
     loaded = tasm.load(tmp_path)
 
-    assert loaded.getString(8)[0] == "omega"
+    assert loaded.getString(alpha_id)[0] == "omega"
 
 
 def test_tasm_rejects_conflicting_string_edits(tmp_path):
     with HBC98_FIXTURE.open("rb") as f:
         original = hbcl.load(f)
 
+    alpha_id = string_id(original, "alpha")
     tasm.dump(original, tmp_path, force=True)
     instruction_path = tmp_path / "functions.tasm"
     content = instruction_path.read_text()
-    content = content.replace('s@8 "alpha"', 's@8 "omega"', 1)
-    content = content.replace('s@8 "alpha"', 's@8 "bravo"', 1)
+    content = content.replace(f's@{alpha_id} "alpha"', f's@{alpha_id} "omega"', 1)
+    content = content.replace(f's@{alpha_id} "alpha"', f's@{alpha_id} "bravo"', 1)
     instruction_path.write_text(content)
 
-    with pytest.raises(ValueError, match="Conflicting edits for string 8"):
+    with pytest.raises(ValueError, match=f"Conflicting edits for string {alpha_id}"):
         tasm.load(tmp_path)
 
 
@@ -119,10 +173,11 @@ def test_tasm_resolves_unique_bare_string_literal(tmp_path):
     with HBC98_FIXTURE.open("rb") as f:
         original = hbcl.load(f)
 
+    now_id = string_id(original, "now")
     tasm.dump(original, tmp_path, force=True)
     instruction_path = tmp_path / "functions.tasm"
     content = instruction_path.read_text()
-    instruction_path.write_text(content.replace('s@14 "now"', '"now"', 1))
+    instruction_path.write_text(content.replace(f's@{now_id} "now"', '"now"', 1))
 
     loaded = tasm.load(tmp_path)
     out_path = tmp_path / "out.bundle"
@@ -132,13 +187,8 @@ def test_tasm_resolves_unique_bare_string_literal(tmp_path):
     assert out_path.read_bytes() == HBC98_FIXTURE.read_bytes()
 
 
-def test_hbc98_direct_dump_round_trips_bytes(tmp_path):
-    original_bytes = HBC98_FIXTURE.read_bytes()
-    with HBC98_FIXTURE.open("rb") as f:
-        hbco = hbcl.load(f)
-
-    out_path = tmp_path / "index.android.bundle"
-    with out_path.open("w+b") as f:
-        hbcl.dump(hbco, f)
-
-    assert out_path.read_bytes() == original_bytes
+def string_id(hbco, value: str) -> int:
+    for index in range(hbco.getStringCount()):
+        if hbco.getString(index)[0] == value:
+            return index
+    raise AssertionError(f"fixture is missing string {value!r}")

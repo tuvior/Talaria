@@ -3,7 +3,7 @@ from click.testing import CliRunner
 from talaria import apk as talaria_apk
 from talaria import hbc
 from talaria.cli import main
-from tests.test_hbc_core import HBC98_FIXTURE
+from tests.test_hbc_core import HBC98_FIXTURE, string_id
 
 
 def test_cli_version():
@@ -60,8 +60,14 @@ def test_cli_apk_disasm_and_asm_updates_decoded_bundle(tmp_path, monkeypatch):
     assert (workspace / "talaria-apk.json").exists()
     assert (workspace / "tasm" / "functions.tasm").exists()
 
+    with HBC98_FIXTURE.open("rb") as f:
+        hbco = hbc.load(f)
+    alpha_id = string_id(hbco, "alpha")
+
     functions_path = workspace / "tasm" / "functions.tasm"
-    functions_path.write_text(functions_path.read_text().replace('s@8 "alpha"', 's@8 "omega"', 1))
+    functions_path.write_text(
+        functions_path.read_text().replace(f's@{alpha_id} "alpha"', f's@{alpha_id} "omega"', 1)
+    )
 
     asm_result = runner.invoke(main, ["apk", "asm", str(workspace)])
 
@@ -71,4 +77,4 @@ def test_cli_apk_disasm_and_asm_updates_decoded_bundle(tmp_path, monkeypatch):
     assert f"updated {workspace / 'apk' / 'assets' / 'index.android.bundle'}" in asm_result.output
     with (workspace / "apk" / "assets" / "index.android.bundle").open("rb") as f:
         hbco = hbc.load(f)
-    assert hbco.getString(8)[0] == "omega"
+    assert hbco.getString(alpha_id)[0] == "omega"
