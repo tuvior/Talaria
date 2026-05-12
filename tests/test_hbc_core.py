@@ -258,6 +258,172 @@ def test_tasm_groups_related_instructions_without_extra_gaps():
     ) in out.getvalue()
 
 
+def test_tasm_keeps_selector_construction_together():
+    class FakeHBC:
+        def getHeader(self):
+            return {"version": 96}
+
+        def getStringCount(self):
+            return 4
+
+        def getString(self, index):
+            return (
+                [
+                    "createSelector",
+                    "isSubscribed",
+                    "hasBusinessWeekEntitlement",
+                    "nextDependency",
+                ][index],
+                (False, 0, 0),
+            )
+
+    out = io.StringIO()
+    context = tasm.TasmContext.from_hbc(FakeHBC())
+    func = FunctionBody(
+        name="",
+        param_count=0,
+        register_count=12,
+        symbol_count=0,
+        instructions=(
+            Instruction(
+                "CreateClosure",
+                (
+                    Operand("Reg8", False, 4),
+                    Operand("Reg8", False, 1),
+                    Operand("UInt16", False, 23573),
+                ),
+            ),
+            Instruction(
+                "PutById",
+                (
+                    Operand("Reg8", False, 2),
+                    Operand("Reg8", False, 4),
+                    Operand("UInt8", False, 76),
+                    Operand("UInt16", True, 2),
+                ),
+            ),
+            Instruction(
+                "LoadConstUInt8",
+                (
+                    Operand("Reg8", False, 4),
+                    Operand("UInt8", False, 6),
+                ),
+            ),
+            Instruction(
+                "GetByVal",
+                (
+                    Operand("Reg8", False, 10),
+                    Operand("Reg8", False, 7),
+                    Operand("Reg8", False, 4),
+                ),
+            ),
+            Instruction(
+                "Call2",
+                (
+                    Operand("Reg8", False, 10),
+                    Operand("Reg8", False, 6),
+                    Operand("Reg8", False, 0),
+                    Operand("Reg8", False, 10),
+                ),
+            ),
+            Instruction(
+                "GetById",
+                (
+                    Operand("Reg8", False, 11),
+                    Operand("Reg8", False, 10),
+                    Operand("UInt8", False, 3),
+                    Operand("UInt16", True, 0),
+                ),
+            ),
+            Instruction(
+                "NewArray",
+                (
+                    Operand("Reg8", False, 10),
+                    Operand("UInt16", False, 2),
+                ),
+            ),
+            Instruction(
+                "PutOwnByIndex",
+                (
+                    Operand("Reg8", False, 10),
+                    Operand("Reg8", False, 3),
+                    Operand("UInt8", False, 0),
+                ),
+            ),
+            Instruction(
+                "PutOwnByIndex",
+                (
+                    Operand("Reg8", False, 10),
+                    Operand("Reg8", False, 5),
+                    Operand("UInt8", False, 1),
+                ),
+            ),
+            Instruction(
+                "CreateClosure",
+                (
+                    Operand("Reg8", False, 5),
+                    Operand("Reg8", False, 1),
+                    Operand("UInt16", False, 23574),
+                ),
+            ),
+            Instruction(
+                "Call3",
+                (
+                    Operand("Reg8", False, 5),
+                    Operand("Reg8", False, 11),
+                    Operand("Reg8", False, 0),
+                    Operand("Reg8", False, 10),
+                    Operand("Reg8", False, 5),
+                ),
+            ),
+            Instruction(
+                "PutById",
+                (
+                    Operand("Reg8", False, 2),
+                    Operand("Reg8", False, 5),
+                    Operand("UInt8", False, 85),
+                    Operand("UInt16", True, 1),
+                ),
+            ),
+            Instruction(
+                "StoreToEnvironment",
+                (
+                    Operand("Reg8", False, 1),
+                    Operand("UInt8", False, 22),
+                    Operand("Reg8", False, 5),
+                ),
+            ),
+            Instruction(
+                "GetByVal",
+                (
+                    Operand("Reg8", False, 10),
+                    Operand("Reg8", False, 7),
+                    Operand("Reg8", False, 4),
+                ),
+            ),
+        ),
+    )
+
+    tasm.write_func(out, func, 0, context)
+
+    assert (
+        "    CreateClosure r4, r1, fn@23573\n"
+        '    PutById r2, r4, cache:76, s@2 "hasBusinessWeekEntitlement"\n\n'
+        "    LoadConstUInt8 r4, 6\n"
+        "    GetByVal r10, r7, r4\n"
+        "    Call2 r10, r6, r0, r10\n"
+        '    GetById r11, r10, cache:3, s@0 "createSelector"\n'
+        "    NewArray r10, 2\n"
+        "    PutOwnByIndex r10, r3, 0\n"
+        "    PutOwnByIndex r10, r5, 1\n"
+        "    CreateClosure r5, r1, fn@23574\n"
+        "    Call3 r5, r11, r0, r10, r5\n"
+        '    PutById r2, r5, cache:85, s@1 "isSubscribed"\n'
+        "    StoreToEnvironment r1, slot:22, r5\n\n"
+        "    GetByVal r10, r7, r4\n"
+    ) in out.getvalue()
+
+
 def test_tasm_missing_function_block_preserves_original_function(tmp_path):
     with HBC98_FIXTURE.open("rb") as f:
         original = hbcl.load(f)

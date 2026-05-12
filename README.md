@@ -6,8 +6,8 @@
 
 <p align="center"><strong>Winged tools for Hermes bytecode.</strong></p>
 
-Talaria is a Python command-line tool and library for disassembling, editing,
-and assembling Hermes bytecode bundles used by React Native applications.
+**Talaria** is a Python command-line tool and library for disassembling, editing,
+and assembling Hermes bytecode bundles used by **React Native** applications.
 
 <p align="center">
   <a href="pyproject.toml"><img alt="Python" src="https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white"></a>
@@ -20,14 +20,13 @@ and assembling Hermes bytecode bundles used by React Native applications.
   <a href="tests"><img alt="Tests: pytest" src="https://img.shields.io/badge/tests-pytest-0A9EDC"></a>
 </p>
 
-Talaria is named after the winged sandals of Mercury, the Roman counterpart to
-Hermes. The name fits the project directly: it is built to move quickly through
-Hermes bytecode, from React Native APKs to editable TASM and back again.
+**Talaria** is named after the winged sandals of Mercury, the Roman counterpart to
+Hermes.
 
 
 ## Hermes Bytecode Support
 
-Talaria supports the Hermes bytecode (HBC) versions listed below. Hermes does
+**Talaria** supports the Hermes bytecode (**HBC**) versions listed below. Hermes does
 not publish separate end-user documentation for each bytecode version; the
 closest authoritative references are the Hermes source files that define the
 bytecode file format and opcode list. General background is available in the

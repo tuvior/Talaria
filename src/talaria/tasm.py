@@ -259,7 +259,7 @@ def _is_call(opcode: str) -> bool:
 
 
 def _starts_fresh_setup(opcode: str) -> bool:
-    return opcode.startswith(("CreateClosure", "GetGlobalObject", "TryGetById"))
+    return opcode.startswith(("GetGlobalObject", "TryGetById"))
 
 
 def _is_assignment_boundary(opcode: str) -> bool:
