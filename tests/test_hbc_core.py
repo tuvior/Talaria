@@ -250,7 +250,7 @@ def test_tasm_groups_related_instructions_without_extra_gaps():
         "    Ret r0\n\n"
         "    CreateClosure r2, r1, fn@3\n"
         '    PutByIdLoose r0, r2, cache:1, s@0 "first"\n'
-        "    StoreToEnvironment r1, slot:3, r2\n\n"
+        "    StoreToEnvironment r1, slot:3, r2\n"
         "    CreateClosure r2, r1, fn@4\n"
         '    PutByIdLoose r0, r2, cache:2, s@1 "second"\n\n'
         "    LoadConstUInt8 r3, 4\n"

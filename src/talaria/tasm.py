@@ -245,7 +245,7 @@ def _starts_new_instruction_group(previous_opcode: str, opcode: str) -> bool:
         return True
     if _is_unconditional_terminator(previous_opcode):
         return True
-    if _is_assignment_boundary(previous_opcode) and _starts_assignment_setup(opcode):
+    if _is_assignment_boundary(previous_opcode) and _starts_dependency_setup(opcode):
         return True
     return _is_call(previous_opcode) and _starts_fresh_setup(opcode)
 
@@ -266,8 +266,8 @@ def _is_assignment_boundary(opcode: str) -> bool:
     return opcode.startswith(("StoreToEnvironment", "StoreNPToEnvironment", "PutById"))
 
 
-def _starts_assignment_setup(opcode: str) -> bool:
-    return opcode.startswith(("CreateClosure", "LoadConst", "GetByVal"))
+def _starts_dependency_setup(opcode: str) -> bool:
+    return opcode.startswith(("LoadConst", "GetByVal"))
 
 
 def _format_operand(
