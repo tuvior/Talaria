@@ -50,9 +50,9 @@ bytecode file format and opcode list. General background is available in the
 Unsupported bundle versions fail explicitly before parsing. The source tag
 registry lives in [`specs.json`](src/talaria/hbc/specs.json), including the
 compiler package used for generated fixtures. Fixtures for HBC 84, 85, 90, 94,
-and 96 are compiled from [`hbc_fixture.js`](tests/fixtures/hbc_fixture.js). HBC
-59 and 62 are retained sample bundles because the matching npm packages do not
-ship a usable Linux `hermesc` binary; HBC 74, 76, and 98 are retained sample
+96, and 98 are compiled from [`hbc_fixture.js`](tests/fixtures/hbc_fixture.js).
+HBC 59 and 62 are retained sample bundles because the matching npm packages do
+not ship a usable Linux `hermesc` binary; HBC 74 and 76 are retained sample
 bundles that are verified against their source-era metadata.
 
 ## Install

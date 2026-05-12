@@ -12,6 +12,7 @@ from talaria import tasm
 from talaria.hbc import SUPPORTED_VERSIONS
 from talaria.hbc.hbc96.translator import assemble, disassemble, opcode_mapper_inv
 from talaria.models import FunctionBody, Instruction, Operand
+from talaria.util import BitReader, BitWriter, read, write
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 HBC_ROOT = ROOT / "src" / "talaria" / "hbc"
@@ -85,6 +86,24 @@ def test_truncated_instruction_is_preserved_as_raw():
 
     assert instructions == [(".raw", [("UInt8", False, 42)])]
     assert assemble(instructions) == [42]
+
+
+def test_bitfields_write_little_endian_across_byte_boundaries():
+    out = io.BytesIO()
+    writer = BitWriter(out)
+
+    write(writer, 749, ["bit", 25, 1])
+    write(writer, 1, ["bit", 5, 1])
+    write(writer, 0, ["bit", 2, 1])
+    writer.flush()
+
+    encoded = out.getvalue()
+    assert encoded == bytes.fromhex("ed 02 00 02")
+
+    reader = BitReader(io.BytesIO(encoded))
+    assert read(reader, ["bit", 25, 1]) == 749
+    assert read(reader, ["bit", 5, 1]) == 1
+    assert read(reader, ["bit", 2, 1]) == 0
 
 
 def test_invalid_string_reference_does_not_crash():

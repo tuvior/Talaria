@@ -10,7 +10,6 @@ class BitWriter:
         self.bcount = 0
         self.out = f
         self.write = 0
-        self.remained = 0
 
     def __enter__(self):
         return self
@@ -22,34 +21,18 @@ class BitWriter:
         with suppress(ValueError):  # I/O operation on closed file.
             self.flush()
 
-    def _writebit(self, bit, remaining=-1):
-        if remaining > -1:
-            self.accumulator |= bit << (remaining - 1)
-        else:
-            self.accumulator |= bit << (7 - self.bcount + self.remained)
-
-        self.bcount += 1
-
-        if self.bcount == 8:
-            self.flush()
-
-    def _clearbits(self, remaining):
-        self.remained = remaining
-
     def _writebyte(self, b):
         if self.bcount:
             raise RuntimeError("Cannot write a byte while bit buffer is not empty")
         self.out.write(bytes([b]))
         self.write += 1
 
-    def writebits(self, v, n, remained=False):
-        i = n
-        while i > 0:
-            self._writebit((v & (1 << i - 1)) >> (i - 1), remaining=(i if remained else -1))
-            i -= 1
-
-        if remained:
-            self._clearbits(n)
+    def writebits(self, v, n):
+        for i in range(n):
+            self.accumulator |= ((v >> i) & 1) << self.bcount
+            self.bcount += 1
+            if self.bcount == 8:
+                self.flush()
 
     def writebytes(self, v, n):
         while n > 0:
@@ -60,12 +43,11 @@ class BitWriter:
         return v
 
     def flush(self):
-        if self.bcount == 0 and self.accumulator == 0 and self.remained == 0:
+        if self.bcount == 0 and self.accumulator == 0:
             return
         self.out.write(bytes([self.accumulator]))
         self.accumulator = 0
         self.bcount = 0
-        self.remained = 0
         self.write += 1
 
     def seek(self, i):
@@ -275,24 +257,7 @@ def writeint(f, v, bits=64):
 
 
 def writebits(f, v, bits=8):
-    s = 0
-    if f.bcount % 8 != 0 and bits >= 8 - f.bcount:
-        buffered_bits = 8 - f.bcount
-        f.writebits(v & ((1 << buffered_bits) - 1), buffered_bits)
-        v = v >> buffered_bits
-        s += buffered_bits
-        bits -= buffered_bits
-
-    for _ in range(bits // 8):
-        f.writebits(v & 0xFF, 8)
-        v = v >> 8
-        s += 8
-
-    r = bits % 8
-    if r != 0:
-        f.writebits(v & ((1 << bits) - 1), r, remained=True)
-        v = v >> r
-        s += r
+    f.writebits(v, bits)
 
 
 def write(f, v, format):

@@ -99,6 +99,6 @@
     "verified_compatible_tags": [
       "hermes-v250829098.0.13"
     ],
-    "fixture_source": "existing sample bundle"
+    "fixture_source": "hermes-compiler@250829098.0.10"
   }
 }
