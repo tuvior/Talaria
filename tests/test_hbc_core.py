@@ -177,6 +177,63 @@ def test_tasm_groups_related_instructions_without_extra_gaps():
             ),
             Instruction("Jmp", (Operand("Addr8", False, 2),)),
             Instruction("Ret", (Operand("Reg8", False, 0),)),
+            Instruction(
+                "CreateClosure",
+                (
+                    Operand("Reg8", False, 2),
+                    Operand("Reg8", False, 1),
+                    Operand("UInt16", False, 3),
+                ),
+            ),
+            Instruction(
+                "PutByIdLoose",
+                (
+                    Operand("Reg8", False, 0),
+                    Operand("Reg8", False, 2),
+                    Operand("UInt8", False, 1),
+                    Operand("UInt16", True, 0),
+                ),
+            ),
+            Instruction(
+                "StoreToEnvironment",
+                (
+                    Operand("Reg8", False, 1),
+                    Operand("UInt8", False, 3),
+                    Operand("Reg8", False, 2),
+                ),
+            ),
+            Instruction(
+                "CreateClosure",
+                (
+                    Operand("Reg8", False, 2),
+                    Operand("Reg8", False, 1),
+                    Operand("UInt16", False, 4),
+                ),
+            ),
+            Instruction(
+                "PutByIdLoose",
+                (
+                    Operand("Reg8", False, 0),
+                    Operand("Reg8", False, 2),
+                    Operand("UInt8", False, 2),
+                    Operand("UInt16", True, 1),
+                ),
+            ),
+            Instruction(
+                "LoadConstUInt8",
+                (
+                    Operand("Reg8", False, 3),
+                    Operand("UInt8", False, 4),
+                ),
+            ),
+            Instruction(
+                "GetByVal",
+                (
+                    Operand("Reg8", False, 3),
+                    Operand("Reg8", False, 4),
+                    Operand("Reg8", False, 3),
+                ),
+            ),
         ),
     )
 
@@ -190,7 +247,14 @@ def test_tasm_groups_related_instructions_without_extra_gaps():
         "    Call2 r0, r1, r2, r4\n"
         "    Jmp :L0019\n\n"
         ":L0019\n"
-        "    Ret r0\n"
+        "    Ret r0\n\n"
+        "    CreateClosure r2, r1, fn@3\n"
+        '    PutByIdLoose r0, r2, cache:1, s@0 "first"\n'
+        "    StoreToEnvironment r1, slot:3, r2\n\n"
+        "    CreateClosure r2, r1, fn@4\n"
+        '    PutByIdLoose r0, r2, cache:2, s@1 "second"\n\n'
+        "    LoadConstUInt8 r3, 4\n"
+        "    GetByVal r3, r4, r3\n"
     ) in out.getvalue()
 
 
