@@ -27,7 +27,7 @@ def _title(command: str) -> None:
 
 def _field(label: str, value: object, *, value_style: str | None = None) -> None:
     line = Text("  ")
-    line.append(f"{label:<8}", style="bright_black")
+    line.append(f"{label:<9}", style="bright_black")
     if value_style is None:
         line.append(str(value))
     else:
@@ -37,7 +37,7 @@ def _field(label: str, value: object, *, value_style: str | None = None) -> None
 
 def _done(label: str, value: object) -> None:
     line = Text("  ")
-    line.append(f"{label:<8}", style="bold green")
+    line.append(f"{label:<9}", style="bold green")
     line.append(str(value), style="bright_green")
     CONSOLE.print(line)
 
