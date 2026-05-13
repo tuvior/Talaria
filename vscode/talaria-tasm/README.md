@@ -5,6 +5,7 @@ Local VS Code language extension for Talaria assembly files.
 It highlights:
 
 - `.function`, `.end function`, `.name`, `.params`, `.registers`, and `.symbols`
+- `.hints` blocks and hint keys
 - instruction opcodes such as `LoadConstString`, `CreateClosure`, and `JmpFalse`
 - labels and label references
 - registers, string/function/bigint references, typed operands, numeric aliases, numbers, strings, and comments

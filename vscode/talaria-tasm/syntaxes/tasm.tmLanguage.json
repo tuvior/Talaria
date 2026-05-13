@@ -7,6 +7,9 @@
       "include": "#function-directive"
     },
     {
+      "include": "#hint-block"
+    },
+    {
       "include": "#end-function-directive"
     },
     {
@@ -116,6 +119,59 @@
         {
           "name": "punctuation.separator.operand.tasm",
           "match": ","
+        }
+      ]
+    },
+    "hint-block": {
+      "name": "meta.directive.hints.tasm",
+      "begin": "^\\s*(\\.hints)\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.control.directive.tasm"
+        }
+      },
+      "end": "^\\s*(\\.end)\\s+(hints)\\b",
+      "endCaptures": {
+        "1": {
+          "name": "keyword.control.directive.tasm"
+        },
+        "2": {
+          "name": "entity.name.section.tasm"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#hint-entry"
+        },
+        {
+          "include": "#strings"
+        },
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#operands"
+        }
+      ]
+    },
+    "hint-entry": {
+      "name": "meta.hint.entry.tasm",
+      "begin": "^\\s*([a-z][A-Za-z0-9_]*)\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "support.type.hint-key.tasm"
+        }
+      },
+      "end": "$",
+      "patterns": [
+        {
+          "include": "#strings"
+        },
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#operands"
         }
       ]
     },

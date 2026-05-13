@@ -94,19 +94,32 @@ Use `talaria --help` for the complete command reference.
 Function blocks in `functions.tasm` use a smali-inspired line-oriented syntax:
 
 ```text
-.function @0
-    .name "global"
+.function @45154
+    .name "?anon_0_"
     .params 1
-    .registers 3
+    .registers 12
     .symbols 0
 
-    LoadConstUndefined r0
-    CreateClosure r1, r0, fn@1
+    .hints
+        kind generator_body
+        confidence derived
+        wrapped_by fn@45153
+        exported_as "resetTrialStarted"
+        yield_points :L002f
+        calls "clearData"
+        property_reads "AsyncStorageKeys" "TrialStarted"
+        flags generator_state_machine reads_environment
+    .end hints
 
-    LoadConstString r2, s@4 "use strict"
-    JmpFalse :done, r2
+    StartGenerator
+    ResumeGenerator r0, r1
+    JmpTrue :L002f, r1
+    LoadConstUndefined r1
+    CompleteGenerator
+    Ret r1
 
-:done
+:L002f
+    CompleteGenerator
     Ret r0
 .end function
 ```
@@ -114,8 +127,16 @@ Function blocks in `functions.tasm` use a smali-inspired line-oriented syntax:
 Common operand forms are `r0` for registers, plain integers for opcode-typed
 unsigned immediates, `i32:-1` for signed immediates, `s@18 "value"` for editable
 string table references, `fn@4` for function references, and labels such as
-`:done` for branch targets. Cache slots and similar common operands render with
+`:L002f` for branch targets. Cache slots and similar common operands render with
 aliases such as `cache:2`, `slot:0`, `param:1`, and `argc:3`.
+
+The optional `.hints` block contains generated annotations for reverse
+engineering. Hints are ignored by the assembler; editing or removing them does
+not change the bytecode. Each hint line starts with a key followed by values.
+Repeated keys are allowed. Current hints cover common structure such as parent
+closures, Metro module factories, export getters, methods, async/generator
+wrappers, callbacks, captured environment slots, property reads/writes, calls,
+and compact flags.
 
 ## VS Code Syntax Highlighting
 

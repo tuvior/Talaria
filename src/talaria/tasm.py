@@ -10,9 +10,11 @@ from typing import Any, TextIO
 
 import talaria.hbc as hbcl
 from talaria.models import FunctionBody, Instruction, Operand
+from talaria.tasm_hints import function_hints
+from talaria.tasm_labels import function_offsets_and_labels
 
 FORMAT_NAME = "talaria.disassembly"
-FORMAT_VERSION = 3
+FORMAT_VERSION = 4
 MANIFEST_FILE = "talaria.json"
 BUNDLE_FILE = "bundle.json"
 STRINGS_FILE = "strings.json"
@@ -182,14 +184,27 @@ def _load_opcode_metadata(version: int) -> OpcodeMetadata:
     )
 
 
-def write_func(out: TextIO, function: FunctionBody, index: int, context: TasmContext) -> None:
-    offsets, labels = _function_offsets_and_labels(function, context.metadata)
+def write_func(
+    out: TextIO,
+    function: FunctionBody,
+    index: int,
+    context: TasmContext,
+    hints: list[str] | None = None,
+) -> None:
+    offsets, labels = function_offsets_and_labels(function, context.metadata)
 
     out.write(f".function @{index}\n")
     out.write(f"    .name {json.dumps(function.name)}\n")
     out.write(f"    .params {function.param_count}\n")
     out.write(f"    .registers {function.register_count}\n")
-    out.write(f"    .symbols {function.symbol_count}\n\n")
+    out.write(f"    .symbols {function.symbol_count}\n")
+    if hints:
+        out.write("\n")
+        out.write("    .hints\n")
+        for hint in hints:
+            out.write(f"        {hint}\n")
+        out.write("    .end hints\n")
+    out.write("\n")
 
     previous_opcode: str | None = None
     for offset, instruction in zip(offsets, function.instructions, strict=True):
@@ -212,28 +227,6 @@ def write_func(out: TextIO, function: FunctionBody, index: int, context: TasmCon
         out.write(f"    {instruction.opcode}{operands}\n")
 
     out.write(".end function\n\n")
-
-
-def _function_offsets_and_labels(
-    function: FunctionBody, metadata: OpcodeMetadata
-) -> tuple[list[int], dict[int, str]]:
-    offsets: list[int] = []
-    offset = 0
-    for instruction in function.instructions:
-        offsets.append(offset)
-        offset += metadata.instruction_size(instruction)
-
-    valid_offsets = set(offsets)
-    labels: dict[int, str] = {}
-    for instruction_offset, instruction in zip(offsets, function.instructions, strict=True):
-        for operand in instruction.operands:
-            if not operand.type.startswith("Addr"):
-                continue
-            target = instruction_offset + operand.value
-            if target in valid_offsets:
-                labels.setdefault(target, f":L{target:04x}")
-
-    return offsets, labels
 
 
 def _starts_new_instruction_group(previous_opcode: str, opcode: str) -> bool:
@@ -340,11 +333,16 @@ def dump(hbc, path: str | Path, force: bool = False) -> None:
     (output_path / BUNDLE_FILE).write_text(json.dumps(hbc.getObj()))
     (output_path / STRINGS_FILE).write_text(json.dumps(strings, indent=2))
 
+    functions = [
+        FunctionBody.from_hbc_tuple(hbc.getFunction(index))
+        for index in range(hbc.getFunctionCount())
+    ]
+    hints = function_hints(functions, context.strings, context.metadata)
+
     with (output_path / FUNCTIONS_FILE).open("w") as out:
-        out.write("# Talaria assembly v3\n\n")
-        for index in range(hbc.getFunctionCount()):
-            function = FunctionBody.from_hbc_tuple(hbc.getFunction(index))
-            write_func(out, function, index, context)
+        out.write("# Talaria assembly v4\n\n")
+        for index, function in enumerate(functions):
+            write_func(out, function, index, context, hints.get(index))
 
 
 def _write_manifest(output_path: Path) -> None:
@@ -406,12 +404,21 @@ def _read_function(func_asm: str, context: TasmContext) -> FunctionBody:
     symbol_count: int | None = None
     instruction_lines = []
 
+    in_hints = False
     for line in lines[1:]:
         stripped = line.strip()
         if not stripped or stripped.startswith(";"):
             continue
         if stripped == ".end function":
             break
+        if stripped == ".hints":
+            in_hints = True
+            continue
+        if stripped == ".end hints":
+            in_hints = False
+            continue
+        if in_hints:
+            continue
         if stripped.startswith(".name "):
             name = json.loads(stripped.removeprefix(".name "))
         elif stripped.startswith(".params "):
