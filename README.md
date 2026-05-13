@@ -102,12 +102,9 @@ Function blocks in `functions.tasm` use a smali-inspired line-oriented syntax:
 
     .hints
         kind generator_body
-        confidence derived
         wrapped_by fn@45153
         exported_as "resetTrialStarted"
         yield_points :L002f
-        calls "clearData"
-        property_reads "AsyncStorageKeys" "TrialStarted"
         flags generator_state_machine reads_environment
     .end hints
 
@@ -135,8 +132,8 @@ engineering. Hints are ignored by the assembler; editing or removing them does
 not change the bytecode. Each hint line starts with a key followed by values.
 Repeated keys are allowed. Current hints cover common structure such as parent
 closures, Metro module factories, export getters, methods, async/generator
-wrappers, callbacks, captured environment slots, property reads/writes, calls,
-and compact flags.
+wrappers, selector/projector relationships, callbacks, captured environment
+slots, dependency imports, property writes, and compact flags.
 
 ## VS Code Syntax Highlighting
 

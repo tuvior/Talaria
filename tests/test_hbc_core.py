@@ -12,6 +12,7 @@ from talaria import tasm
 from talaria.hbc import SUPPORTED_VERSIONS
 from talaria.hbc.hbc96.translator import assemble, disassemble, opcode_mapper_inv
 from talaria.models import FunctionBody, Instruction, Operand
+from talaria.tasm_hints import function_hints
 from talaria.util import BitReader, BitWriter, read, write
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -256,6 +257,351 @@ def test_tasm_groups_related_instructions_without_extra_gaps():
         "    LoadConstUInt8 r3, 4\n"
         "    GetByVal r3, r4, r3\n"
     ) in out.getvalue()
+
+
+def test_tasm_hints_compact_parent_metro_modules():
+    class FakeMetadata:
+        def instruction_size(self, instruction):
+            return 1
+
+    instructions = []
+    strings = {0: "__d"}
+    for function_id in range(1, 20):
+        module_id_reg = function_id + 20
+        deps_reg = function_id + 40
+        instructions.extend(
+            (
+                Instruction(
+                    "GetById",
+                    (
+                        Operand("Reg8", False, 1),
+                        Operand("Reg8", False, 0),
+                        Operand("UInt8", False, 0),
+                        Operand("UInt16", True, 0),
+                    ),
+                ),
+                Instruction(
+                    "CreateClosure",
+                    (
+                        Operand("Reg8", False, 2),
+                        Operand("Reg8", False, 0),
+                        Operand("UInt16", False, function_id),
+                    ),
+                ),
+                Instruction(
+                    "LoadConstUInt8",
+                    (
+                        Operand("Reg8", False, module_id_reg),
+                        Operand("UInt8", False, function_id),
+                    ),
+                ),
+                Instruction(
+                    "NewArray",
+                    (
+                        Operand("Reg8", False, deps_reg),
+                        Operand("UInt16", False, 2),
+                    ),
+                ),
+                Instruction(
+                    "Call4",
+                    (
+                        Operand("Reg8", False, 3),
+                        Operand("Reg8", False, 1),
+                        Operand("UInt8", False, 4),
+                        Operand("Reg8", False, 2),
+                        Operand("Reg8", False, module_id_reg),
+                        Operand("Reg8", False, deps_reg),
+                    ),
+                ),
+            )
+        )
+
+    functions = [
+        FunctionBody(
+            name="global",
+            param_count=1,
+            register_count=80,
+            symbol_count=0,
+            instructions=tuple(instructions),
+        ),
+        *[
+            FunctionBody(
+                name="",
+                param_count=1,
+                register_count=1,
+                symbol_count=0,
+                instructions=(),
+            )
+            for _ in range(19)
+        ],
+    ]
+
+    hints = function_hints(functions, strings, FakeMetadata())
+
+    assert "metro_module fn@1" not in hints[0]
+    assert any(
+        hint.startswith("metro_modules fn@1 fn@2")
+        and hint.endswith("more:3")
+        for hint in hints[0]
+    )
+    assert "kind module_factory" in hints[1]
+    assert "metro_module_id 1" in hints[1]
+    assert "metro_dependencies count:2" in hints[1]
+
+
+def test_tasm_hints_identify_create_selector_projectors():
+    class FakeMetadata:
+        def instruction_size(self, instruction):
+            return 1
+
+    strings = {
+        0: "createSelector",
+        1: "getUserLoginInfoFromState",
+        2: "isSubscribed",
+    }
+    functions = [
+        FunctionBody(
+            name="",
+            param_count=1,
+            register_count=12,
+            symbol_count=0,
+            instructions=(
+                Instruction(
+                    "GetById",
+                    (
+                        Operand("Reg8", False, 11),
+                        Operand("Reg8", False, 10),
+                        Operand("UInt8", False, 3),
+                        Operand("UInt16", True, 0),
+                    ),
+                ),
+                Instruction(
+                    "CreateClosure",
+                    (
+                        Operand("Reg8", False, 3),
+                        Operand("Reg8", False, 1),
+                        Operand("UInt16", False, 1),
+                    ),
+                ),
+                Instruction(
+                    "NewArray",
+                    (
+                        Operand("Reg8", False, 10),
+                        Operand("UInt16", False, 2),
+                    ),
+                ),
+                Instruction(
+                    "PutOwnByIndex",
+                    (
+                        Operand("Reg8", False, 10),
+                        Operand("Reg8", False, 3),
+                        Operand("UInt8", False, 0),
+                    ),
+                ),
+                Instruction(
+                    "GetById",
+                    (
+                        Operand("Reg8", False, 5),
+                        Operand("Reg8", False, 4),
+                        Operand("UInt8", False, 4),
+                        Operand("UInt16", True, 1),
+                    ),
+                ),
+                Instruction(
+                    "PutOwnByIndex",
+                    (
+                        Operand("Reg8", False, 10),
+                        Operand("Reg8", False, 5),
+                        Operand("UInt8", False, 1),
+                    ),
+                ),
+                Instruction(
+                    "CreateClosure",
+                    (
+                        Operand("Reg8", False, 5),
+                        Operand("Reg8", False, 1),
+                        Operand("UInt16", False, 2),
+                    ),
+                ),
+                Instruction(
+                    "Call3",
+                    (
+                        Operand("Reg8", False, 5),
+                        Operand("Reg8", False, 11),
+                        Operand("Reg8", False, 0),
+                        Operand("Reg8", False, 10),
+                        Operand("Reg8", False, 5),
+                    ),
+                ),
+                Instruction(
+                    "PutById",
+                    (
+                        Operand("Reg8", False, 2),
+                        Operand("Reg8", False, 5),
+                        Operand("UInt8", False, 85),
+                        Operand("UInt16", True, 2),
+                    ),
+                ),
+                Instruction(
+                    "StoreToEnvironment",
+                    (
+                        Operand("Reg8", False, 1),
+                        Operand("UInt8", False, 22),
+                        Operand("Reg8", False, 5),
+                    ),
+                ),
+            ),
+        ),
+        FunctionBody(
+            name="inputSelector",
+            param_count=1,
+            register_count=1,
+            symbol_count=0,
+            instructions=(),
+        ),
+        FunctionBody(
+            name="",
+            param_count=4,
+            register_count=12,
+            symbol_count=0,
+            instructions=(),
+        ),
+    ]
+
+    hints = function_hints(functions, strings, FakeMetadata())
+
+    assert "selector_projectors fn@2" in hints[0]
+    assert 'selector "isSubscribed" fn@2' in hints[0]
+    assert "kind selector_projector" in hints[2]
+    assert "created_as selector_projector" in hints[2]
+    assert 'selector_inputs "inputSelector" "getUserLoginInfoFromState"' in hints[2]
+    assert 'selector_for "isSubscribed"' in hints[2]
+    assert "selector_result_stored slot:22" in hints[2]
+
+
+def test_tasm_hints_resolve_captures_and_dependency_imports():
+    class FakeMetadata:
+        def instruction_size(self, instruction):
+            return 1
+
+    strings = {0: "getIsTerminalUserFromUserCredentials"}
+    functions = [
+        FunctionBody(
+            name="",
+            param_count=1,
+            register_count=8,
+            symbol_count=0,
+            instructions=(
+                Instruction("CreateEnvironment", (Operand("Reg8", False, 1),)),
+                Instruction(
+                    "CreateClosure",
+                    (
+                        Operand("Reg8", False, 4),
+                        Operand("Reg8", False, 1),
+                        Operand("UInt16", False, 1),
+                    ),
+                ),
+                Instruction(
+                    "StoreToEnvironment",
+                    (
+                        Operand("Reg8", False, 1),
+                        Operand("UInt8", False, 20),
+                        Operand("Reg8", False, 4),
+                    ),
+                ),
+                Instruction(
+                    "CreateClosure",
+                    (
+                        Operand("Reg8", False, 5),
+                        Operand("Reg8", False, 1),
+                        Operand("UInt16", False, 2),
+                    ),
+                ),
+            ),
+        ),
+        FunctionBody(
+            name="hasUserSubscriptionWithValidEntitlements",
+            param_count=2,
+            register_count=1,
+            symbol_count=0,
+            instructions=(),
+        ),
+        FunctionBody(
+            name="",
+            param_count=4,
+            register_count=8,
+            symbol_count=0,
+            instructions=(
+                Instruction(
+                    "GetEnvironment",
+                    (Operand("Reg8", False, 1), Operand("UInt8", False, 0)),
+                ),
+                Instruction(
+                    "LoadFromEnvironment",
+                    (
+                        Operand("Reg8", False, 3),
+                        Operand("Reg8", False, 1),
+                        Operand("UInt8", False, 20),
+                    ),
+                ),
+                Instruction(
+                    "LoadFromEnvironment",
+                    (
+                        Operand("Reg8", False, 2),
+                        Operand("Reg8", False, 1),
+                        Operand("UInt8", False, 0),
+                    ),
+                ),
+                Instruction(
+                    "LoadFromEnvironment",
+                    (
+                        Operand("Reg8", False, 4),
+                        Operand("Reg8", False, 1),
+                        Operand("UInt8", False, 1),
+                    ),
+                ),
+                Instruction(
+                    "LoadConstUInt8",
+                    (
+                        Operand("Reg8", False, 5),
+                        Operand("UInt8", False, 7),
+                    ),
+                ),
+                Instruction(
+                    "GetByVal",
+                    (
+                        Operand("Reg8", False, 4),
+                        Operand("Reg8", False, 4),
+                        Operand("Reg8", False, 5),
+                    ),
+                ),
+                Instruction("LoadConstUndefined", (Operand("Reg8", False, 6),)),
+                Instruction(
+                    "Call2",
+                    (
+                        Operand("Reg8", False, 4),
+                        Operand("Reg8", False, 2),
+                        Operand("Reg8", False, 6),
+                        Operand("Reg8", False, 4),
+                    ),
+                ),
+                Instruction(
+                    "GetById",
+                    (
+                        Operand("Reg8", False, 7),
+                        Operand("Reg8", False, 4),
+                        Operand("UInt8", False, 1),
+                        Operand("UInt16", True, 0),
+                    ),
+                ),
+            ),
+        ),
+    ]
+
+    hints = function_hints(functions, strings, FakeMetadata())
+
+    assert "captures slot:0 slot:1 slot:20=fn@1" in hints[2]
+    assert 'uses_dependency index:7 import:"getIsTerminalUserFromUserCredentials"' in hints[2]
 
 
 def test_tasm_keeps_selector_construction_together():
