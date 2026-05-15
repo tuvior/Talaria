@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import shutil
 import subprocess
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -93,4 +94,17 @@ def run_apktool(args: list[str]) -> None:
     apktool = shutil.which("apktool")
     if apktool is None:
         raise FileNotFoundError("apktool is not installed or is not on PATH")
-    subprocess.run([apktool, *args], check=True)
+    command = [apktool, *args]
+    result = subprocess.run(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        errors="replace",
+    )
+    if result.returncode != 0:
+        if result.stdout:
+            sys.stderr.write(result.stdout)
+            if not result.stdout.endswith("\n"):
+                sys.stderr.write("\n")
+        raise subprocess.CalledProcessError(result.returncode, command, output=result.stdout)

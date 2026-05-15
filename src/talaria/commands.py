@@ -97,6 +97,7 @@ def disassemble_apk(
     _title("talaria apk disasm")
     _field("apk", input_path, value_style="cyan")
     _field("workdir", output_path, value_style="cyan")
+    _field("decode", "apktool d -r")
     workspace = apk.create_workspace(
         input_path,
         output_path,

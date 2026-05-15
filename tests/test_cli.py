@@ -1,3 +1,5 @@
+import re
+
 from click.testing import CliRunner
 
 from talaria import apk as talaria_apk
@@ -21,7 +23,10 @@ def test_cli_disasm_asm_round_trip(tmp_path):
     disasm_result = runner.invoke(main, ["disasm", str(HBC98_FIXTURE), str(tasm_path), "--force"])
     assert disasm_result.exit_code == 0, disasm_result.output
     assert "talaria disasm" in disasm_result.output
-    assert "wrote   talaria.json, bundle.json, strings.json, functions.tasm" in disasm_result.output
+    assert re.search(
+        r"wrote\s+talaria\.json, bundle\.json, strings\.json, functions\.tasm",
+        disasm_result.output,
+    )
     assert (tasm_path / "talaria.json").exists()
     assert (tasm_path / "bundle.json").exists()
     assert (tasm_path / "strings.json").exists()
@@ -30,7 +35,7 @@ def test_cli_disasm_asm_round_trip(tmp_path):
     asm_result = runner.invoke(main, ["asm", str(tasm_path), str(bundle_path)])
     assert asm_result.exit_code == 0, asm_result.output
     assert "talaria asm" in asm_result.output
-    assert f"output  {bundle_path}" in asm_result.output
+    assert re.search(rf"output\s+{re.escape(str(bundle_path))}", asm_result.output)
     assert bundle_path.read_bytes() == HBC98_FIXTURE.read_bytes()
 
 
@@ -56,7 +61,11 @@ def test_cli_apk_disasm_and_asm_updates_decoded_bundle(tmp_path, monkeypatch):
 
     assert disasm_result.exit_code == 0, disasm_result.output
     assert "talaria apk disasm" in disasm_result.output
-    assert f"edit    {workspace / 'tasm' / 'functions.tasm'}" in disasm_result.output
+    assert re.search(r"decode\s+apktool d -r", disasm_result.output)
+    assert re.search(
+        rf"edit\s+{re.escape(str(workspace / 'tasm' / 'functions.tasm'))}",
+        disasm_result.output,
+    )
     assert (workspace / "talaria-apk.json").exists()
     assert (workspace / "tasm" / "functions.tasm").exists()
 
@@ -74,7 +83,10 @@ def test_cli_apk_disasm_and_asm_updates_decoded_bundle(tmp_path, monkeypatch):
     assert asm_result.exit_code == 0, asm_result.output
     assert "talaria apk asm" in asm_result.output
     assert "talaria asm" not in asm_result.output
-    assert f"updated {workspace / 'apk' / 'assets' / 'index.android.bundle'}" in asm_result.output
+    assert re.search(
+        rf"updated\s+{re.escape(str(workspace / 'apk' / 'assets' / 'index.android.bundle'))}",
+        asm_result.output,
+    )
     with (workspace / "apk" / "assets" / "index.android.bundle").open("rb") as f:
         hbco = hbc.load(f)
     assert hbco.getString(alpha_id)[0] == "omega"
